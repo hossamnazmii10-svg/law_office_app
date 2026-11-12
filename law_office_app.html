@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة مكتب المحاماة - Offside Legal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        legal: {
+                            50: '#f4f6f9',
+                            100: '#e2e8f0',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            gold: '#c5a880',
+                            goldDark: '#a3855f'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Navbar -->
+    <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="bg-amber-600 p-2.5 rounded-lg text-white shadow-inner">
+                    <i class="fa-solid fa-scale-balanced text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black tracking-wide text-amber-500">مكتب المحاماة والتحكيم</h1>
+                    <p class="text-xs text-slate-400">إدارة القضايا والموكلين والجلسات بكفاءة عالية</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4 space-x-reverse">
+                <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300">
+                    <i class="fa-solid fa-user-tie ml-1 text-amber-500"></i> الأستاذ / المحامي المسؤول
+                </span>
+                <button onclick="exportData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-3 py-2 rounded-lg transition border border-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-download text-amber-500"></i> تصدير البيانات
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 md:grid-cols-4 gap-6">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="md:col-span-1 bg-white p-4 rounded-xl shadow-sm border border-slate-200 h-fit sticky top-20">
+            <nav class="space-y-1">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="w-full text-right px-4 py-3 rounded-lg font-bold text-sm transition flex items-center space-x-3 space-x-reverse bg-amber-600 text-white shadow-sm">
+                    <i class="fa-solid fa-chart-pie w-6"></i>
+                    <span>لوحة التحكم</span>
+                </button>
+                <button onclick="switchTab('cases')" id="btn-cases" class="w-full text-right px-4 py-3 rounded-lg font-semibold text-sm transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-folder-open w-6 text-amber-600"></i>
+                    <span>إدارة القضايا</span>
+                </button>
+                <button onclick="switchTab('clients')" id="btn-clients" class="w-full text-right px-4 py-3 rounded-lg font-semibold text-sm transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-users w-6 text-amber-600"></i>
+                    <span>الموكلين</span>
+                </button>
+                <button onclick="switchTab('sessions')" id="btn-sessions" class="w-full text-right px-4 py-3 rounded-lg font-semibold text-sm transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-calendar-days w-6 text-amber-600"></i>
+                    <span>رول الجلسات</span>
+                </button>
+                <button onclick="switchTab('finances')" id="btn-finances" class="w-full text-right px-4 py-3 rounded-lg font-semibold text-sm transition flex items-center space-x-3 space-x-reverse text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i class="fa-solid fa-wallet w-6 text-amber-600"></i>
+                    <span>الحسابات والأتعاب</span>
+                </button>
+            </nav>
+            <div class="mt-8 pt-4 border-t border-slate-100 text-center">
+                <p class="text-xs text-slate-400">جميع الحقوق محفوظة &copy; 2026</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="md:col-span-3 space-y-6">
+
+            <!-- 1. Dashboard Tab -->
+            <div id="dashboard" class="tab-content active space-y-6">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">إجمالي القضايا</p>
+                            <h3 id="stat-cases" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                        </div>
+                        <div class="bg-amber-100 p-3 rounded-lg text-amber-700">
+                            <i class="fa-solid fa-folder text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">الموكلين المسجلين</p>
+                            <h3 id="stat-clients" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                        </div>
+                        <div class="bg-blue-100 p-3 rounded-lg text-blue-700">
+                            <i class="fa-solid fa-users text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">جلسات قادمة</p>
+                            <h3 id="stat-sessions" class="text-2xl font-black text-slate-900 mt-1">0</h3>
+                        </div>
+                        <div class="bg-emerald-100 p-3 rounded-lg text-emerald-700">
+                            <i class="fa-solid fa-calendar-check text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-500">إجمالي الأتعاب المحصلة</p>
+                            <h3 id="stat-revenue" class="text-xl font-black text-slate-900 mt-1">0 ج.م</h3>
+                        </div>
+                        <div class="bg-purple-100 p-3 rounded-lg text-purple-700">
+                            <i class="fa-solid fa-coins text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Sessions & Quick Actions -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="font-bold text-slate-800 text-md flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> الجلسات القادمة والقرارات
+                            </h2>
+                            <button onclick="switchTab('sessions')" class="text-xs text-amber-600 hover:underline font-bold">عرض الكل</button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right text-sm">
+                                <thead class="bg-slate-50 text-slate-500 text-xs">
+                                    <tr>
+                                        <th class="p-3">رقم القضية</th>
+                                        <th class="p-3">الموكل</th>
+                                        <th class="p-3">المحكمة</th>
+                                        <th class="p-3">التاريخ</th>
+                                        <th class="p-3">الحالة</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-sessions-table" class="divide-y divide-slate-100">
+                                    <!-- Populated via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <h2 class="font-bold text-slate-800 text-md mb-4 flex items-center gap-2">
+                                <i class="fa-solid fa-bolt text-amber-600"></i> إجراءات سريعة
+                            </h2>
+                            <div class="space-y-3">
+                                <button onclick="openModal('caseModal')" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-folder-plus"></i> إضافة قضية جديدة
+                                </button>
+                                <button onclick="openModal('clientModal')" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-user-plus"></i> تسجيل موكل جديد
+                                </button>
+                                <button onclick="openModal('sessionModal')" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-calendar-plus"></i> جدولة جلسة جديدة
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mt-6 bg-amber-50 border border-amber-200 p-3 rounded-lg text-xs text-amber-800">
+                            <p class="font-bold mb-1"><i class="fa-solid fa-circle-info"></i> تذكير قانوني:</p>
+                            تأكد من مراجعة رول الجلسات أسبوعياً وتحديث مستحقات الأتعاب للموكلين بانتظام.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Cases Management Tab -->
+            <div id="cases" class="tab-content space-y-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" id="searchCase" oninput="renderCases()" placeholder="بحث برقم القضية أو اسم الخصم..." class="w-full pr-10 pl-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-600">
+                        <i class="fa-solid fa-search absolute right-3 top-3 text-slate-400"></i>
+                    </div>
+                    <button onclick="openModal('caseModal')" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-folder-plus"></i> قضية جديدة
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3.5">رقم القضية</th>
+                                    <th class="p-3.5">اسم الموكل</th>
+                                    <th class="p-3.5">الخصم</th>
+                                    <th class="p-3.5">المحكمة الدائرة</th>
+                                    <th class="p-3.5">الأتعاب الكلية</th>
+                                    <th class="p-3.5">المتبقي</th>
+                                    <th class="p-3.5">الحالة</th>
+                                    <th class="p-3.5 text-center">إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cases-table-body" class="divide-y divide-slate-100">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Clients Tab -->
+            <div id="clients" class="tab-content space-y-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" id="searchClient" oninput="renderClients()" placeholder="بحث باسم الموكل أو الهاتف..." class="w-full pr-10 pl-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-amber-600">
+                        <i class="fa-solid fa-search absolute right-3 top-3 text-slate-400"></i>
+                    </div>
+                    <button onclick="openModal('clientModal')" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-user-plus"></i> موكل جديد
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="clients-grid">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- 4. Sessions Tab -->
+            <div id="sessions" class="tab-content space-y-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex justify-between items-center">
+                    <h2 class="font-bold text-slate-800 text-md">رول الجلسات والمواعيد القادمة</h2>
+                    <button onclick="openModal('sessionModal')" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-4 rounded-lg text-sm transition flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-calendar-plus"></i> إضافة جلسة
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs border-b border-slate-200">
+                                <tr>
+                                    <th class="p-3.5">تاريخ الجلسة</th>
+                                    <th class="p-3.5">رقم القضية</th>
+                                    <th class="p-3.5">الموكل</th>
+                                    <th class="p-3.5">المحكمة</th>
+                                    <th class="p-3.5">القرار المطلوب / الطلبات</th>
+                                    <th class="p-3.5 text-center">حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sessions-table-body" class="divide-y divide-slate-100">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Finances Tab -->
+            <div id="finances" class="tab-content space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-xs font-semibold text-slate-500">إجمالي الأتعاب المتفق عليها</p>
+                        <h3 id="fin-total" class="text-2xl font-black text-slate-900 mt-2">0 ج.م</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-xs font-semibold text-slate-500">إجمالي المدفوع (المحصل)</p>
+                        <h3 id="fin-paid" class="text-2xl font-black text-emerald-600 mt-2">0 ج.م</h3>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                        <p class="text-xs font-semibold text-slate-500">المتبقي تحت التحصيل</p>
+                        <h3 id="fin-remaining" class="text-2xl font-black text-amber-600 mt-2">0 ج.م</h3>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="font-bold text-slate-800 text-md mb-4">متابعة حسابات وقضايا الموكلين</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right text-sm">
+                            <thead class="bg-slate-50 text-slate-500 text-xs">
+                                <tr>
+                                    <th class="p-3">رقم القضية</th>
+                                    <th class="p-3">الموكل</th>
+                                    <th class="p-3">الأتعاب الكلية</th>
+                                    <th class="p-3">المدفوع</th>
+                                    <th class="p-3">المتبقي</th>
+                                    <th class="p-3 text-center">إجراء سداد</th>
+                                </tr>
+                            </thead>
+                            <tbody id="finances-table-body" class="divide-y divide-slate-100">
+                                <!-- Populated via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Case Modal -->
+    <div id="caseModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-md">إضافة قضية جديدة</h3>
+                <button onclick="closeModal('caseModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="caseForm" onsubmit="saveCase(event)" class="space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">رقم القضية / السنة</label>
+                        <input type="text" id="caseNumber" required placeholder="مثال: 1245 لسنة 2026 مدني" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">الموكل</label>
+                        <select id="caseClient" required class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">اسم الخصم</label>
+                        <input type="text" id="caseOpponent" required placeholder="اسم الخصم أو الصفة" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">المحكمة / الدائرة</label>
+                        <input type="text" id="caseCourt" required placeholder="مثال: محكمة شمال القاهرة - الدائرة 8" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">نوع القضية</label>
+                        <select id="caseType" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                            <option value="مدني">مدني</option>
+                            <option value="جنائي">جنائي</option>
+                            <option value="أسرة">أسرة</option>
+                            <option value="تجاري">تجاري وعمالي</option>
+                            <option value="إداري">إداري ومجلس دولة</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">إجمالي الأتعاب (ج.م)</label>
+                        <input type="number" id="caseFees" required placeholder="0" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1 text-slate-700">المدفوع مقدماً (ج.م)</label>
+                        <input type="number" id="casePaid" required placeholder="0" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">حالة القضية</label>
+                    <select id="caseStatus" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                        <option value="متداولة">متداولة أمام المحكمة</option>
+                        <option value="محجوزة للحكم">محجوزة للحكم</option>
+                        <option value="منتهية">منتهية / صادر بها حكم</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('caseModal')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">حفظ القضية</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client Modal -->
+    <div id="clientModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-md">تسجيل موكل جديد</h3>
+                <button onclick="closeModal('clientModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="clientForm" onsubmit="saveClient(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">اسم الموكل الرباعي</label>
+                    <input type="text" id="clientName" required placeholder="اسم الموكل كامل" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">رقم الهاتف (واتساب)</label>
+                    <input type="text" id="clientPhone" required placeholder="010xxxxxxxx" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">الرقم القومي (14 رقم)</label>
+                    <input type="text" id="clientNationalId" placeholder="الرقم القومي للموكل" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">العنوان وملاحظات</label>
+                    <textarea id="clientAddress" rows="2" placeholder="عنوان الموكل التفصيلي" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('clientModal')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">حفظ الموكل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Session Modal -->
+    <div id="sessionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-slate-200">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-md">جدولة جلسة جديدة</h3>
+                <button onclick="closeModal('sessionModal')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="sessionForm" onsubmit="saveSession(event)" class="space-y-4 text-sm">
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">اختر القضية</label>
+                    <select id="sessionCase" required class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                        <!-- Populated via JS -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">تاريخ الجلسة</label>
+                    <input type="date" id="sessionDate" required class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">الطلبات أو القرار المطلوب</label>
+                    <textarea id="sessionNotes" rows="2" required placeholder="مثال: إعلان بالدعوى / تقديم مستندات / حضور الخبير" class="w-full p-2.5 border rounded-lg focus:outline-none focus:border-amber-600"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t">
+                    <button type="button" onclick="closeModal('sessionModal')" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-bold">حفظ الجلسة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initial Mock Data if LocalStorage is empty
+        let db = JSON.parse(localStorage.getItem('law_office_db')) || {
+            clients: [
+                { id: 1, name: 'أحمد محمد إبراهيم', phone: '01012345678', nationalId: '29811180102030', address: 'مصر الجديدة، القاهرة' },
+                { id: 2, name: 'محمود عبد الله حسن', phone: '01298765432', nationalId: '29005120104050', address: 'التجمع الخامس، القاهرة' }
+            ],
+            cases: [
+                { id: 101, caseNumber: '1024 لسنة 2026 مدني', clientId: 1, opponent: 'شركة النيل العقارية', court: 'محكمة جنوب القاهرة الدائرة 4', type: 'مدني', fees: 25000, paid: 10000, status: 'متداولة' },
+                { id: 102, caseNumber: '315 لسنة 2026 تجاري', clientId: 2, opponent: 'مؤسسة النور للتجارة', court: 'محكمة الاقتصادية', type: 'تجاري', fees: 40000, paid: 25000, status: 'محجوزة للحكم' }
+            ],
+            sessions: [
+                { id: 1, caseId: 101, date: '2026-04-12', notes: 'تقديم المذكرات ومستندات الخبير' },
+                { id: 2, caseId: 102, date: '2026-04-15', notes: 'النطق بالحكم النهائي' }
+            ]
+        };
+
+        function saveData() {
+            localStorage.setItem('law_office_db', JSON.stringify(db));
+            initApp();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(el => {
+                el.classList.remove('bg-amber-600', 'text-white', 'shadow-sm');
+                el.classList.add('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+            });
+
+            document.getElementById(tabId).classList.add('active');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100', 'hover:text-slate-900');
+            activeBtn.classList.add('bg-amber-600', 'text-white', 'shadow-sm');
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.remove('hidden');
+            populateSelects();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function populateSelects() {
+            // Client Select in Case Modal
+            const clientSelect = document.getElementById('caseClient');
+            clientSelect.innerHTML = db.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            // Case Select in Session Modal
+            const sessionCaseSelect = document.getElementById('sessionCase');
+            sessionCaseSelect.innerHTML = db.cases.map(cs => {
+                const client = db.clients.find(c => c.id == cs.clientId);
+                return `<option value="${cs.id}">${cs.caseNumber} - (${client ? client.name : 'موكل'})</option>`;
+            }).join('');
+        }
+
+        function initApp() {
+            // Stats
+            document.getElementById('stat-cases').innerText = db.cases.length;
+            document.getElementById('stat-clients').innerText = db.clients.length;
+            document.getElementById('stat-sessions').innerText = db.sessions.length;
+            
+            const totalRevenue = db.cases.reduce((acc, c) => acc + Number(c.paid), 0);
+            document.getElementById('stat-revenue').innerText = totalRevenue.toLocaleString() + ' ج.م';
+
+            renderDashboardSessions();
+            renderCases();
+            renderClients();
+            renderSessions();
+            renderFinances();
+        }
+
+        function renderDashboardSessions() {
+            const tbody = document.getElementById('recent-sessions-table');
+            tbody.innerHTML = db.sessions.slice(0, 5).map(s => {
+                const cs = db.cases.find(c => c.id == s.caseId);
+                const client = cs ? db.clients.find(c => c.id == cs.clientId) : null;
+                return `
+                    <tr>
+                        <td class="p-3 font-bold">${cs ? cs.caseNumber : '-'}</td>
+                        <td class="p-3">${client ? client.name : '-'}</td>
+                        <td class="p-3">${cs ? cs.court : '-'}</td>
+                        <td class="p-3 text-amber-700 font-semibold">${s.date}</td>
+                        <td class="p-3"><span class="bg-amber-100 text-amber-800 text-xs px-2.5 py-1 rounded-full">${s.notes}</span></td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="5" class="p-4 text-center text-slate-400">لا توجد جلسات مجدولة</td></tr>';
+        }
+
+        function renderCases() {
+            const query = document.getElementById('searchCase').value.toLowerCase();
+            const tbody = document.getElementById('cases-table-body');
+            
+            const filtered = db.cases.filter(c => {
+                const client = db.clients.find(cl => cl.id == c.clientId);
+                return c.caseNumber.toLowerCase().includes(query) || c.opponent.toLowerCase().includes(query) || (client && client.name.toLowerCase().includes(query));
+            });
+
+            tbody.innerHTML = filtered.map(c => {
+                const client = db.clients.find(cl => cl.id == c.clientId);
+                const remaining = c.fees - c.paid;
+                return `
+                    <tr class="hover:bg-slate-50/50">
+                        <td class="p-3.5 font-bold text-slate-900">${c.caseNumber}</td>
+                        <td class="p-3.5">${client ? client.name : 'غير معروف'}</td>
+                        <td class="p-3.5">${c.opponent}</td>
+                        <td class="p-3.5 text-slate-600 text-xs">${c.court}</td>
+                        <td class="p-3.5 font-bold">${Number(c.fees).toLocaleString()} ج.م</td>
+                        <td class="p-3.5 font-bold text-amber-600">${Number(remaining).toLocaleString()} ج.م</td>
+                        <td class="p-3.5">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${c.status === 'متداولة' ? 'bg-blue-100 text-blue-800' : (c.status === 'محجوزة للحكم' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800')}">
+                                ${c.status}
+                            </span>
+                        </td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteCase(${c.id})" class="text-rose-500 hover:text-rose-700 p-1" title="حذف القضية"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="8" class="p-6 text-center text-slate-400">لا توجد قضايا مطابقة للبحث</td></tr>';
+        }
+
+        function renderClients() {
+            const query = document.getElementById('searchClient').value.toLowerCase();
+            const grid = document.getElementById('clients-grid');
+
+            const filtered = db.clients.filter(c => c.name.toLowerCase().includes(query) || c.phone.includes(query));
+
+            grid.innerHTML = filtered.map(c => {
+                const clientCases = db.cases.filter(cs => cs.clientId == c.id);
+                return `
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 text-md">${c.name}</h3>
+                                    <p class="text-xs text-slate-400 mt-0.5"><i class="fa-solid fa-id-card ml-1"></i> ${c.nationalId || 'بدون رقم قومي'}</p>
+                                </div>
+                                <span class="bg-amber-50 text-amber-700 border border-amber-200 text-xs px-2.5 py-1 rounded-lg font-bold">${clientCases.length} قضية</span>
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2"><i class="fa-solid fa-phone text-amber-600 ml-1"></i> ${c.phone}</p>
+                            <p class="text-xs text-slate-500 mb-4"><i class="fa-solid fa-location-dot text-slate-400 ml-1"></i> ${c.address || 'العنوان غير مسجل'}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+                            <a href="https://wa.me/966${c.phone.replace(/^0+/, '')}" target="_blank" class="text-emerald-600 hover:text-emerald-700 text-xs font-bold flex items-center gap-1">
+                                <i class="fa-brands fa-whatsapp text-sm"></i> مراسلة واتساب
+                            </a>
+                            <button onclick="deleteClient(${c.id})" class="text-rose-500 hover:text-rose-700 text-xs"><i class="fa-solid fa-trash-can"></i> حذف</button>
+                        </div>
+                    </div>
+                `;
+            }).join('') || '<div class="col-span-full p-6 text-center text-slate-400 bg-white rounded-xl">لا يوجد موكلين مطابقين</div>';
+        }
+
+        function renderSessions() {
+            const tbody = document.getElementById('sessions-table-body');
+            tbody.innerHTML = db.sessions.map(s => {
+                const cs = db.cases.find(c => c.id == s.caseId);
+                const client = cs ? db.clients.find(c => c.id == cs.clientId) : null;
+                return `
+                    <tr class="hover:bg-slate-50/50">
+                        <td class="p-3.5 font-bold text-amber-700">${s.date}</td>
+                        <td class="p-3.5 font-bold">${cs ? cs.caseNumber : '-'}</td>
+                        <td class="p-3.5">${client ? client.name : '-'}</td>
+                        <td class="p-3.5 text-slate-600 text-xs">${cs ? cs.court : '-'}</td>
+                        <td class="p-3.5"><span class="bg-slate-100 text-slate-800 text-xs px-2.5 py-1 rounded-lg">${s.notes}</span></td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="deleteSession(${s.id})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('') || '<tr><td colspan="6" class="p-6 text-center text-slate-400">لا توجد جلسات مسجلة</td></tr>';
+        }
+
+        function renderFinances() {
+            let totalFees = 0;
+            let totalPaid = 0;
+
+            db.cases.forEach(c => {
+                totalFees += Number(c.fees);
+                totalPaid += Number(c.paid);
+            });
+
+            const totalRemaining = totalFees - totalPaid;
+
+            document.getElementById('fin-total').innerText = totalFees.toLocaleString() + ' ج.م';
+            document.getElementById('fin-paid').innerText = totalPaid.toLocaleString() + ' ج.م';
+            document.getElementById('fin-remaining').innerText = totalRemaining.toLocaleString() + ' ج.م';
+
+            const tbody = document.getElementById('finances-table-body');
+            tbody.innerHTML = db.cases.map(c => {
+                const client = db.clients.find(cl => cl.id == c.clientId);
+                const rem = c.fees - c.paid;
+                return `
+                    <tr>
+                        <td class="p-3 font-bold">${c.caseNumber}</td>
+                        <td class="p-3">${client ? client.name : '-'}</td>
+                        <td class="p-3 font-bold">${Number(c.fees).toLocaleString()} ج.م</td>
+                        <td class="p-3 text-emerald-600 font-bold">${Number(c.paid).toLocaleString()} ج.م</td>
+                        <td class="p-3 text-amber-600 font-bold">${Number(rem).toLocaleString()} ج.م</td>
+                        <td class="p-3 text-center">
+                            <button onclick="payInstallment(${c.id})" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs px-3 py-1.5 rounded-lg font-bold transition">
+                                <i class="fa-solid fa-plus-circle"></i> سداد دفعة
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Form Submission Handlers
+        function saveCase(e) {
+            e.preventDefault();
+            const newCase = {
+                id: Date.now(),
+                caseNumber: document.getElementById('caseNumber').value,
+                clientId: Number(document.getElementById('caseClient').value),
+                opponent: document.getElementById('caseOpponent').value,
+                court: document.getElementById('caseCourt').value,
+                type: document.getElementById('caseType').value,
+                fees: Number(document.getElementById('caseFees').value),
+                paid: Number(document.getElementById('casePaid').value),
+                status: document.getElementById('caseStatus').value
+            };
+            db.cases.push(newCase);
+            saveData();
+            closeModal('caseModal');
+            document.getElementById('caseForm').reset();
+        }
+
+        function saveClient(e) {
+            e.preventDefault();
+            const newClient = {
+                id: Date.now(),
+                name: document.getElementById('clientName').value,
+                phone: document.getElementById('clientPhone').value,
+                nationalId: document.getElementById('clientNationalId').value,
+                address: document.getElementById('clientAddress').value
+            };
+            db.clients.push(newClient);
+            saveData();
+            closeModal('clientModal');
+            document.getElementById('clientForm').reset();
+        }
+
+        function saveSession(e) {
+            e.preventDefault();
+            const newSession = {
+                id: Date.now(),
+                caseId: Number(document.getElementById('sessionCase').value),
+                date: document.getElementById('sessionDate').value,
+                notes: document.getElementById('sessionNotes').value
+            };
+            db.sessions.push(newSession);
+            saveData();
+            closeModal('sessionModal');
+            document.getElementById('sessionForm').reset();
+        }
+
+        function deleteCase(id) {
+            if (confirm('هل أنت متأكد من حذف هذه القضية؟')) {
+                db.cases = db.cases.filter(c => c.id !== id);
+                db.sessions = db.sessions.filter(s => s.caseId !== id);
+                saveData();
+            }
+        }
+
+        function deleteClient(id) {
+            if (confirm('هل أنت متأكد من حذف هذا الموكل؟ سيتم حذف قضاياه المرتبطة أيضاً.')) {
+                db.clients = db.clients.filter(c => c.id !== id);
+                const caseIds = db.cases.filter(c => c.clientId === id).map(c => c.id);
+                db.cases = db.cases.filter(c => c.clientId !== id);
+                db.sessions = db.sessions.filter(s => !caseIds.includes(s.caseId));
+                saveData();
+            }
+        }
+
+        function deleteSession(id) {
+            db.sessions = db.sessions.filter(s => s.id !== id);
+            saveData();
+        }
+
+        function payInstallment(caseId) {
+            const cs = db.cases.find(c => c.id === caseId);
+            if (!cs) return;
+            const amount = prompt(`المتبقي على القضية (${cs.caseNumber}) هو ${(cs.fees - cs.paid).toLocaleString()} ج.م
+أدخل قيمة الدفعة المراد تحصيلها:`, '1000');
+            if (amount && !isNaN(amount)) {
+                cs.paid += Number(amount);
+                if (cs.paid > cs.fees) cs.paid = cs.fees;
+                saveData();
+            }
+        }
+
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "law_office_backup.json");
+            dlAnchorElem.click();
+        }
+
+        // Initialize on load
+        window.onload = initApp;
+    </script>
+</body>
+</html>
